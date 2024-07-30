@@ -1,10 +1,7 @@
+import { useState, useMemo } from 'react'
 import { generateChatList, groupByDate } from '@/common/utils'
 import { Chat } from '@/types/chat'
-import clsx from 'clsx'
-import { useState, useMemo } from 'react'
-import { AiOutlineEdit } from 'react-icons/ai'
-import { MdCheck, MdClose, MdDeleteOutline } from 'react-icons/md'
-import { PiChatBold, PiTrashBold } from 'react-icons/pi'
+import ChatItem from './ChatItem'
 
 export default function ChatList() {
   const [chatList, setChatList] = useState<Chat[]>(generateChatList(20))
@@ -24,31 +21,15 @@ export default function ChatList() {
             </div>
             <ul>
               {list.map((item) => {
-                const selected = selectedChat?.id === item.id
                 return (
-                  <li
+                  <ChatItem
                     key={item.id}
-                    className={clsx(
-                      'group flex items-center p-3 space-x-3 cursor-pointer rounded-md hover:bg-gray-800',
-                      { 'bg-gray-800': selected },
-                    )}
-                    onClick={() => {
-                      setSelectedChat(item)
+                    item={item}
+                    selected={selectedChat?.id === item.id}
+                    onSelected={(chat) => {
+                      setSelectedChat(chat)
                     }}
-                  >
-                    <div>
-                      <PiChatBold />
-                    </div>
-                    <div className="flex-1 whitespace-nowrap overflow-hidden relative">
-                      {item.title}
-                      <span
-                        className={clsx(
-                          'group-hover:from-gray-800 absolute right-0 inset-y-0 w-8 from-gray-900 bg-gradient-to-l',
-                          { 'from-gray-800': selected },
-                        )}
-                      ></span>
-                    </div>
-                  </li>
+                  />
                 )
               })}
             </ul>

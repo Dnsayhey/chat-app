@@ -4,7 +4,7 @@ import clsx from 'clsx'
 
 type ButtonProps = {
   icon?: IconType
-  variant?: 'default' | 'outline' | 'text'
+  variant?: 'default' | 'outline' | 'text' | 'primary'
 } & ComponentPropsWithoutRef<'button'>
 
 export default function Button({
@@ -29,6 +29,10 @@ export default function Button({
         {
           'text-black bg-transparent hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700':
             variant === 'text',
+        },
+        {
+          'bg-primary-500 text-white hover:bg-primary-600 hover:text-white shadow-sm':
+            variant === 'primary',
         },
         `${className}`,
       )}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useAppContext } from './AppContext'
+import { useAppContext } from '../components/AppContext'
 import Navigation from '@/components/home/Navigation/index'
 import Main from '@/components/home/Main/index'
 

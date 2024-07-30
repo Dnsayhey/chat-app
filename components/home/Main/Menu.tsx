@@ -2,7 +2,7 @@
 
 import Button from '@/components/common/Button'
 import { LuPanelLeft } from 'react-icons/lu'
-import { useAppContext } from '@/app/AppContext'
+import { useAppContext } from '@/components/AppContext'
 import { ActionType } from '@/reducers/AppReducers'
 
 export default function Menu() {
