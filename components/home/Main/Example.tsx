@@ -31,7 +31,7 @@ export default function Example() {
         <>
           <p className="p-2">...</p>
           <div className="flex items-center w-full space-x-2">
-            <hr className="flex-1 border-t border-dotted border-gray-200 dark:border-gary-600" />
+            <hr className="flex-1 border-t border-dotted border-gray-200 dark:border-gray-600" />
             <Button
               onClick={() => {
                 setShowAll(true)
@@ -39,7 +39,7 @@ export default function Example() {
             >
               显示全部
             </Button>
-            <hr className="flex-1 border-t border-dotted border-gray-200 dark:border-gary-600" />
+            <hr className="flex-1 border-t border-dotted border-gray-200 dark:border-gray-600" />
           </div>
         </>
       )}

@@ -16,7 +16,7 @@ export default function MessageList() {
           return (
             <li
               key={item.id}
-              className={`${isUser ? 'bg-white dark:bg-gary-800' : 'bg-gary-50 dark:bg-gary-700'}`}
+              className={`${isUser ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700'}`}
             >
               <div className="w-full max-w-4xl mx-auto flex space-x-6 px-4 py-6 text-lg">
                 <div className="text-3xl leading-[1]">

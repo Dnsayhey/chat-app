@@ -3,7 +3,7 @@ import { MdRefresh } from 'react-icons/md'
 import { PiLightningFill, PiStopBold } from 'react-icons/pi'
 import { FiSend } from 'react-icons/fi'
 import TextAreaAutoSize from 'react-textarea-autosize'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { Message, MessageRequestBody } from '@/types/chat'
 import { useAppContext } from '@/components/AppContext'
@@ -15,33 +15,22 @@ export default function ChatInput() {
     state: { messageList, selectedModel, streamingId },
     dispatch,
   } = useAppContext()
+  const stopRef = useRef(false)
 
-  async function send() {
-    // console.log('send message:', messageText)
-    const message: Message = {
-      id: uuidv4(),
-      role: 'user',
-      content: messageText,
-    }
-    const messages = messageList.concat([message])
-
+  async function doSend(messages: Message[]) {
     const body: MessageRequestBody = {
       messages: messages,
       model: selectedModel,
     }
 
-    dispatch({
-      type: ActionType.ADD_MESSAGE,
-      message: message,
-    })
-    setMessageText('')
-
+    const controller = new AbortController()
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),
+      signal: controller.signal,
     })
 
     if (!response.ok) {
@@ -73,6 +62,11 @@ export default function ChatInput() {
     const decoder = new TextDecoder()
     let done = false
     while (!done) {
+      if (stopRef.current) {
+        stopRef.current = false
+        controller.abort()
+        break
+      }
       const result = await reader.read()
       done = result.done
       const chunk = decoder.decode(result?.value)
@@ -87,7 +81,38 @@ export default function ChatInput() {
       field: 'streamingId',
       value: '',
     })
+  }
+
+  async function send() {
+    const message: Message = {
+      id: uuidv4(),
+      role: 'user',
+      content: messageText,
+    }
+    const messages = messageList.concat([message])
+    dispatch({
+      type: ActionType.ADD_MESSAGE,
+      message: message,
+    })
     setMessageText('')
+
+    doSend(messages)
+  }
+
+  async function reSend() {
+    const messages = [...messageList]
+    if (
+      messages.length > 0 &&
+      messages[messages.length - 1].role === 'assistant'
+    ) {
+      dispatch({
+        type: ActionType.REMOVE_MESSAGE,
+        message: messages[messages.length - 1],
+      })
+      messages.splice(messages.length - 1, 1)
+
+      doSend(messages)
+    }
   }
 
   return (
@@ -95,11 +120,25 @@ export default function ChatInput() {
       <div className="w-full max-w-4xl mx-auto flex flex-col items-center px-4 space-y-4">
         {messageList.length !== 0 &&
           (streamingId !== '' ? (
-            <Button icon={PiStopBold} variant="primary" className="font-medium">
+            <Button
+              icon={PiStopBold}
+              variant="primary"
+              className="font-medium"
+              onClick={() => {
+                stopRef.current = true
+              }}
+            >
               停止生成
             </Button>
           ) : (
-            <Button icon={MdRefresh} variant="primary" className="font-medium">
+            <Button
+              icon={MdRefresh}
+              variant="primary"
+              className="font-medium"
+              onClick={() => {
+                reSend()
+              }}
+            >
               重新生成
             </Button>
           ))}

@@ -19,7 +19,7 @@ export default function Button({
       className={clsx(
         'inline-flex items-center min-w-[38px] min-h-[38px] rounded px-3 py-1.5 transition-colors',
         {
-          'text-black bg-gary-50 hover:bg-gray-200 dark:text-gary-300 dark:bg-gary-700 dark:hover:bg-gary-900':
+          'text-black bg-gray-50 hover:bg-gray-200 dark:text-gray-300 dark:bg-gray-700 dark:hover:bg-gray-900':
             variant === 'default',
         },
         {
