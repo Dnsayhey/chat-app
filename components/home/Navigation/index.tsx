@@ -10,8 +10,6 @@ export default function Navigation() {
     state: { displayNavigation },
   } = useAppContext()
 
-  console.log('AppContext Rerender')
-
   return (
     <nav
       className={`${displayNavigation ? '' : 'hidden'} flex flex-col relative h-full w-[260px] bg-gray-900 text-gray-300 p-2`}

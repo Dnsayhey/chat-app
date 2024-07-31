@@ -30,8 +30,6 @@ export default function AppContextProvider({
     return { state, dispatch }
   }, [state, dispatch])
 
-  console.log('AppContext Rerender')
-
   return (
     <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>
   )

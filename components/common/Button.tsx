@@ -17,7 +17,7 @@ export default function Button({
   return (
     <button
       className={clsx(
-        'inline-flex items-center min-w-[38px] min-h-[38px] rounded px-3 py-1.5',
+        'inline-flex items-center min-w-[38px] min-h-[38px] rounded px-3 py-1.5 transition-colors',
         {
           'text-black bg-gary-50 hover:bg-gray-200 dark:text-gary-300 dark:bg-gary-700 dark:hover:bg-gary-900':
             variant === 'default',
@@ -31,7 +31,7 @@ export default function Button({
             variant === 'text',
         },
         {
-          'bg-primary-500 text-white hover:bg-primary-600 hover:text-white shadow-sm':
+          'bg-primary-500 text-white hover:bg-primary-600 hover:text-white shadow-sm disabled:shadow-none disabled:bg-transparent disabled:text-gray-300 dark:disabled:text-gray-600':
             variant === 'primary',
         },
         `${className}`,
