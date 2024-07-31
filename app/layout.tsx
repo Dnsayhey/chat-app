@@ -4,6 +4,7 @@ import '@/styles/globals.css'
 import '@/styles/markdown.css'
 
 import AppContextProvider from '@/components/AppContext'
+import EventBusContextProvider from '@/components/EventBusContext'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -20,7 +21,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className}`}>
-        <AppContextProvider>{children}</AppContextProvider>
+        <AppContextProvider>
+          <EventBusContextProvider>{children}</EventBusContextProvider>
+        </AppContextProvider>
       </body>
     </html>
   )

@@ -1,4 +1,4 @@
-import { Message } from '@/types/chat'
+import { Message, Chat } from '@/types/chat'
 
 export type State = {
   displayNavigation: boolean
@@ -6,6 +6,7 @@ export type State = {
   selectedModel: string
   messageList: Message[]
   streamingId: string
+  selectedChat?: Chat
 }
 
 export enum ActionType {
