@@ -7,11 +7,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ code: -1, message: 'Param error: id' })
   }
 
-  await prisma.message.delete({
+  const deleteMessages = prisma.message.deleteMany({
+    where: {
+      chatId: id,
+    },
+  })
+  const deleteChat = prisma.chat.delete({
     where: {
       id,
     },
   })
+
+  await prisma.$transaction([deleteMessages, deleteChat])
 
   return NextResponse.json({ code: 0, message: 'Success' })
 }

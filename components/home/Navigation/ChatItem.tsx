@@ -5,6 +5,9 @@ import { MdCheck, MdClose, MdDeleteOutline } from 'react-icons/md'
 import { PiChatBold, PiTrashBold } from 'react-icons/pi'
 
 import { Chat } from '@/types/chat'
+import { useEventBusContext } from '@/components/EventBusContext'
+import { useAppContext } from '@/components/AppContext'
+import { ActionType } from '@/reducers/AppReducers'
 
 type Props = {
   item: Chat
@@ -15,10 +18,55 @@ type Props = {
 export default function ChatItem({ item, selected, onSelected }: Props) {
   const [editing, setEditing] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [title, setTitle] = useState(item.title)
+  const { publish } = useEventBusContext()
+  const { dispatch } = useAppContext()
 
   useEffect(() => {
     setEditing(false)
   }, [selected])
+
+  async function updateChat() {
+    const response = await fetch('/api/chat/update', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      // body: JSON.stringify({ ...item, title }), 这样不会更新时间
+      body: JSON.stringify({ id: item.id, title: title }),
+    })
+
+    if (!response.ok) {
+      console.error(response.statusText)
+      return
+    }
+
+    const { code } = await response.json()
+    if (code === 0) {
+      publish('fetchChatList')
+    }
+  }
+
+  async function deleteChat() {
+    const response = await fetch(`/api/chat/delete?id=${item.id}`, {
+      method: 'POST',
+    })
+
+    if (!response.ok) {
+      console.error(response.statusText)
+      return
+    }
+
+    const { code } = await response.json()
+    if (code === 0) {
+      publish('fetchChatList')
+      dispatch({
+        type: ActionType.UPDATE,
+        field: 'selectedChat',
+        value: null,
+      })
+    }
+  }
 
   return (
     <li
@@ -35,8 +83,11 @@ export default function ChatItem({ item, selected, onSelected }: Props) {
         <input
           type="text"
           className="flex-1 min-w-0 bg-transparent outline-none"
-          defaultValue={item.title}
           autoFocus={true}
+          value={title}
+          onChange={(e) => {
+            setTitle(e.target.value)
+          }}
         />
       ) : (
         <div className="flex-1 whitespace-nowrap overflow-hidden relative">
@@ -57,9 +108,9 @@ export default function ChatItem({ item, selected, onSelected }: Props) {
                 className="p-1 hover:text-white"
                 onClick={(e) => {
                   if (editing) {
-                    console.log('Item edited.')
+                    updateChat()
                   } else if (deleting) {
-                    console.log('Item deleted')
+                    deleteChat()
                   }
                   setEditing(false)
                   setDeleting(false)

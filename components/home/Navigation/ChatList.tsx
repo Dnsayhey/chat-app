@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { generateChatList, groupByDate } from '@/common/utils'
+import { groupByDate } from '@/common/utils'
 import { Chat } from '@/types/chat'
 import ChatItem from './ChatItem'
 import { useEventBusContext } from '@/components/EventBusContext'
@@ -18,23 +18,32 @@ export default function ChatList() {
 
   const { subscribe, unsubscribe } = useEventBusContext()
   const pageRef = useRef(1)
+  const loadMoreRef = useRef(null)
+  const hasMore = useRef(false)
+  const loadingRef = useRef(false)
 
   async function fetchChatList() {
+    if (loadingRef.current) {
+      return
+    }
+    loadingRef.current = true
     const response = await fetch(`/api/chat/list?page=${pageRef.current}`, {
       method: 'GET',
     })
 
     if (!response.ok) {
       console.error(response.statusText)
+      loadingRef.current = false
       return
     }
-
     const { data } = await response.json()
+    hasMore.current = data.hasMore
     if (pageRef.current === 1) {
       setChatList([...data.list])
     } else {
       setChatList((list) => list.concat(data.list))
     }
+    loadingRef.current = false
   }
 
   useEffect(() => {
@@ -43,11 +52,33 @@ export default function ChatList() {
 
   useEffect(() => {
     const callback: EventListener = () => {
+      // todo
       pageRef.current = 1
       fetchChatList()
     }
     subscribe('fetchChatList', callback)
     return () => unsubscribe('fetchChatList', callback)
+  }, [])
+
+  useEffect(() => {
+    let observer: IntersectionObserver | null = null
+    let div = loadMoreRef.current
+    if (div) {
+      observer = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          if (hasMore.current) {
+            pageRef.current++
+            fetchChatList()
+          }
+        }
+      })
+      observer.observe(div)
+    }
+    return () => {
+      if (observer && div) {
+        observer.unobserve(div)
+      }
+    }
   }, [])
 
   return (
@@ -79,6 +110,7 @@ export default function ChatList() {
           </div>
         )
       })}
+      <div ref={loadMoreRef}>&nbsp;</div>
     </div>
   )
 }

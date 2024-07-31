@@ -15,7 +15,6 @@ export async function GET(request: NextRequest) {
       createTime: 'asc',
     },
   })
-  console.log(list)
 
   return NextResponse.json({ code: 0, data: { list } })
 }

@@ -3,7 +3,7 @@ import { MdRefresh } from 'react-icons/md'
 import { PiLightningFill, PiStopBold } from 'react-icons/pi'
 import { FiSend } from 'react-icons/fi'
 import TextAreaAutoSize from 'react-textarea-autosize'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Message, MessageRequestBody } from '@/types/chat'
 import { useAppContext } from '@/components/AppContext'
 import { ActionType } from '@/reducers/AppReducers'
@@ -12,12 +12,20 @@ import { useEventBusContext } from '@/components/EventBusContext'
 export default function ChatInput() {
   const [messageText, setMessageText] = useState('')
   const {
-    state: { messageList, selectedModel, streamingId },
+    state: { messageList, selectedModel, streamingId, selectedChat },
     dispatch,
   } = useAppContext()
   const stopRef = useRef(false)
   const chatIdRef = useRef('')
   const { publish } = useEventBusContext()
+
+  useEffect(() => {
+    if (chatIdRef.current === selectedChat?.id) {
+      return
+    }
+    chatIdRef.current = selectedChat?.id ?? ''
+    stopRef.current = true
+  }, [selectedChat])
 
   async function createOrUpdateMessage(message: Message) {
     const response = await fetch('/api/message/update', {
@@ -37,6 +45,11 @@ export default function ChatInput() {
     if (!chatIdRef.current) {
       chatIdRef.current = data.message.chatId
       publish('fetchChatList', 'hello')
+      dispatch({
+        type: ActionType.UPDATE,
+        field: 'selectedChat',
+        value: { id: chatIdRef.current },
+      })
     }
     return data.message
   }
@@ -56,6 +69,7 @@ export default function ChatInput() {
   }
 
   async function doSend(messages: Message[]) {
+    stopRef.current = false
     const body: MessageRequestBody = {
       messages: messages,
       model: selectedModel,
@@ -103,7 +117,6 @@ export default function ChatInput() {
     let content = ''
     while (!done) {
       if (stopRef.current) {
-        stopRef.current = false
         controller.abort()
         break
       }

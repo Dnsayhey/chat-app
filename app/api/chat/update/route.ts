@@ -2,12 +2,11 @@ import prisma from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
-  const id = request.nextUrl.searchParams.get('id')
-  if (!id) {
-    return NextResponse.json({ code: -1, message: 'Param error: id' })
-  }
+  const body = await request.json()
+  const { id, ...data } = body
 
-  await prisma.message.delete({
+  await prisma.chat.update({
+    data,
     where: {
       id,
     },
