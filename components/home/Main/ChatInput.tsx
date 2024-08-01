@@ -56,7 +56,7 @@ export default function ChatInput() {
       dispatch({
         type: ActionType.UPDATE,
         field: 'selectedChat',
-        value: { id: chatIdRef.current },
+        value: { id: chatIdRef.current, title: '新对话' },
       })
     }
     return data.message
@@ -162,9 +162,14 @@ export default function ChatInput() {
     })
     setMessageText('')
 
-    doSend(messages)
+    await doSend(messages)
     if (!selectedChat?.title || selectedChat.title === '新对话') {
-      updateChatTitle(messages)
+      const newTitle = await updateChatTitle(messages)
+      dispatch({
+        type: ActionType.UPDATE,
+        field: 'selectedChat',
+        value: { id: chatIdRef.current, title: newTitle },
+      })
     }
   }
 
@@ -180,7 +185,6 @@ export default function ChatInput() {
       messages: [message],
       model: selectedModel,
     }
-    console.log('updateChatTitle', body)
 
     const response = await fetch('/api/chat', {
       method: 'POST',
@@ -210,7 +214,7 @@ export default function ChatInput() {
       const chunk = decoder.decode(result?.value)
       title += chunk
     }
-    // console.log(title)
+
     const updateChatTitleResponse = await fetch('/api/chat/update', {
       method: 'POST',
       headers: {
@@ -227,14 +231,15 @@ export default function ChatInput() {
     const { code } = await updateChatTitleResponse.json()
     if (code === 0) {
       publish('fetchChatList')
+      return title
     }
+    return '新对话'
   }
 
   async function reSend() {
     const messages = [...messageList]
     const len = messages.length
     if (len > 0 && messages[len - 1].role === 'assistant') {
-      console.log(messages[len - 1])
       if (!(await deleteMessage(messages[len - 1].id))) {
         console.error('delete error')
         return
