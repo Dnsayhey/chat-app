@@ -13,7 +13,8 @@ export default function Main() {
     <div className="flex-1 relative">
       <main className="flex-1 w-full h-full bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 overflow-y-auto">
         <Menu />
-        {selectedChat ? <MessageList /> : <Welcome />}
+        {!selectedChat && <Welcome />}
+        <MessageList />
         <ChatInput />
       </main>
     </div>

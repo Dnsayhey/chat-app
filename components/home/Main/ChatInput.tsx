@@ -17,7 +17,15 @@ export default function ChatInput() {
   } = useAppContext()
   const stopRef = useRef(false)
   const chatIdRef = useRef('')
-  const { publish } = useEventBusContext()
+  const { publish, subscribe, unsubscribe } = useEventBusContext()
+
+  useEffect(() => {
+    const callback = (data?: any) => {
+      send(data)
+    }
+    subscribe('createNewChat', callback)
+    return () => unsubscribe('createNewChat', callback)
+  }, [])
 
   useEffect(() => {
     if (chatIdRef.current === selectedChat?.id) {
@@ -140,11 +148,11 @@ export default function ChatInput() {
     })
   }
 
-  async function send() {
+  async function send(content: string) {
     const message: Message = await createOrUpdateMessage({
       id: '',
       role: 'user',
-      content: messageText,
+      content: content,
       chatId: chatIdRef.current,
     })
     const messages = messageList.concat([message])
@@ -155,6 +163,71 @@ export default function ChatInput() {
     setMessageText('')
 
     doSend(messages)
+    if (!selectedChat?.title || selectedChat.title === '新对话') {
+      updateChatTitle(messages)
+    }
+  }
+
+  async function updateChatTitle(messages: Message[]) {
+    const chatId = chatIdRef.current
+    const message: Message = {
+      id: '',
+      role: 'user',
+      content: `使用5到10个字直接返回这段话的简要主题，不要解释，不要标点，不要语气词。内容：${messages[0].content}`,
+      chatId: chatId, // todo 生成标题过程中如果切换了对话
+    }
+    const body: MessageRequestBody = {
+      messages: [message],
+      model: selectedModel,
+    }
+    console.log('updateChatTitle', body)
+
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    })
+
+    if (!response.ok) {
+      console.error(response.statusText)
+      return
+    }
+
+    if (!response.body) {
+      console.error('body error')
+      return
+    }
+
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let done = false
+    let title = ''
+    while (!done) {
+      const result = await reader.read()
+      done = result.done
+      const chunk = decoder.decode(result?.value)
+      title += chunk
+    }
+    // console.log(title)
+    const updateChatTitleResponse = await fetch('/api/chat/update', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ id: chatId, title: title }),
+    })
+
+    if (!updateChatTitleResponse.ok) {
+      console.error(response.statusText)
+      return
+    }
+
+    const { code } = await updateChatTitleResponse.json()
+    if (code === 0) {
+      publish('fetchChatList')
+    }
   }
 
   async function reSend() {
@@ -171,7 +244,6 @@ export default function ChatInput() {
         message: messages[len - 1],
       })
       messages.splice(len - 1, 1)
-
       doSend(messages)
     }
   }
@@ -219,7 +291,9 @@ export default function ChatInput() {
           <Button
             icon={FiSend}
             variant="primary"
-            onClick={send}
+            onClick={() => {
+              send(messageText)
+            }}
             disabled={messageText.trim() === '' || streamingId !== ''}
             className="mx-3 !rounded-lg"
           />

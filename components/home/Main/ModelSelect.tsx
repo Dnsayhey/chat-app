@@ -5,13 +5,13 @@ import { ActionType } from '@/reducers/AppReducers'
 export default function ModelSelect() {
   const models = [
     {
-      id: 'gpt-3.5-turbo',
-      name: 'GPT-3.5',
+      id: 'deepseek-chat',
+      name: 'DeepSeekChat',
       icon: PiLightningFill,
     },
     {
-      id: 'gpt-4.0',
-      name: 'GPT-4',
+      id: 'deepseek-coder',
+      name: 'DeepSeekCoder',
       icon: PiShootingStarFill,
     },
   ]
